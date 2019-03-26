@@ -908,7 +908,7 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 {
 	/* List of coverage areas for each animation trigger */
 	static const TriggerArea tas[] = {
-		TA_TILE, TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_WHOLE
+		TA_TILE, TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_WHOLE, TA_TILE, TA_TILE
 	};
 
 	/* Get Station if it wasn't supplied */

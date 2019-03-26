@@ -2220,6 +2220,7 @@ void Vehicle::LeaveStation()
 		if (IsTileType(this->tile, MP_STATION)) {
 			TriggerStationRandomisation(st, this->tile, SRT_TRAIN_DEPARTS);
 			TriggerStationAnimation(st, this->tile, SAT_TRAIN_DEPARTS);
+			TriggerStationAnimation(st, this->tile, SAT_TRAIN_DEPARTS_TILE);
 		}
 
 		SetBit(Train::From(this)->flags, VRF_LEAVING_STATION);

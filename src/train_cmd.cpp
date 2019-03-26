@@ -2839,6 +2839,7 @@ static void TrainEnterStation(Train *v, StationID station)
 
 	TriggerStationRandomisation(st, v->tile, SRT_TRAIN_ARRIVES);
 	TriggerStationAnimation(st, v->tile, SAT_TRAIN_ARRIVES);
+	TriggerStationAnimation(st, v->tile, SAT_TRAIN_ARRIVES_TILE);
 }
 
 /* Check if the vehicle is compatible with the specified tile */
