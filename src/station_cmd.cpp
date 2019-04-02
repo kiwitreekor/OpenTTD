@@ -56,6 +56,7 @@
 #include "linkgraph/linkgraph_base.h"
 #include "linkgraph/refresh.h"
 #include "widgets/station_widget.h"
+#include "road_cmd.h"
 
 #include "table/strings.h"
 
@@ -765,7 +766,7 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags);
  * Checks if the given tile is buildable, flat and has a certain height.
  * @param tile TileIndex to check.
  * @param invalid_dirs Prohibited directions for slopes (set of #DiagDirection).
- * @param allowed_z Height allowed for the tile. If allowed_z is negative, it will be set to the height of this tile.
+ * @param allowed_z Height allowed for the tile. If allowed_z is -1, it will be set to the height of this tile. If allowed_z is -2, any height is allowed.
  * @param allow_steep Whether steep slopes are allowed.
  * @param check_bridge Check for the existence of a bridge.
  * @return The cost in case of success, or an error code if it failed.
@@ -804,10 +805,10 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	}
 
 	/* The level of this tile must be equal to allowed_z. */
-	if (allowed_z < 0) {
+	if (allowed_z == -1) {
 		/* First tile. */
 		allowed_z = flat_z;
-	} else if (allowed_z != flat_z) {
+	} else if (allowed_z != flat_z && allowed_z != -2) {
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
 	}
 
@@ -855,14 +856,16 @@ static CommandCost CheckFlatLandAirport(AirportTileTableIterator tile_iter, DoCo
 static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag flags, Axis axis, StationID *station, RailType rt, std::vector<Train *> &affected_vehicles, StationClassID spec_class, byte spec_index, byte plat_len, byte numtracks)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int allowed_z = -1;
-	uint invalid_dirs = 5 << axis;
 
 	const StationSpec *statspec = StationClass::Get(spec_class)->GetSpec(spec_index);
 	bool slope_cb = statspec != nullptr && HasBit(statspec->callback_mask, CBM_STATION_SLOPE_CHECK);
 
+	int allowed_z = statspec != NULL && HasBit(statspec->flags, SSF_ALLOW_SLOPES) ? -2 : -1;
+	uint invalid_dirs = statspec != NULL && HasBit(statspec->flags, SSF_ALLOW_SLOPES) ? 0 : 5 << axis;
+	bool allow_steep = statspec != NULL && HasBit(statspec->flags, SSF_ALLOW_SLOPES) ? true : false;
+
 	TILE_AREA_LOOP(tile_cur, tile_area) {
-		CommandCost ret = CheckBuildableTile(tile_cur, invalid_dirs, allowed_z, false);
+		CommandCost ret = CheckBuildableTile(tile_cur, invalid_dirs, allowed_z, allow_steep);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -900,7 +903,7 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 				 */
 				TrackBits tracks = GetTrackBits(tile_cur);
 				Track track = RemoveFirstTrack(&tracks);
-				Track expected_track = HasBit(invalid_dirs, DIAGDIR_NE) ? TRACK_X : TRACK_Y;
+				Track expected_track = axis ? TRACK_Y : TRACK_X;
 
 				if (tracks == TRACK_BIT_NONE && track == expected_track) {
 					/* Check for trains having a reservation for this tile. */
@@ -941,10 +944,10 @@ static CommandCost CheckFlatLandRailStation(TileArea tile_area, DoCommandFlag fl
 static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags, uint invalid_dirs, bool is_drive_through, bool is_truck_stop, Axis axis, StationID *station, RoadType rt)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int allowed_z = -1;
+	int allowed_z = -2;
 
 	TILE_AREA_LOOP(cur_tile, tile_area) {
-		CommandCost ret = CheckBuildableTile(cur_tile, invalid_dirs, allowed_z, !is_drive_through);
+		CommandCost ret = CheckBuildableTile(cur_tile, invalid_dirs, allowed_z, true);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -1848,7 +1851,7 @@ CommandCost CmdBuildRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	/* Total road stop cost. */
 	CommandCost cost(EXPENSES_CONSTRUCTION, roadstop_area.w * roadstop_area.h * _price[type ? PR_BUILD_STATION_TRUCK : PR_BUILD_STATION_BUS]);
 	StationID est = INVALID_STATION;
-	ret = CheckFlatLandRoadStop(roadstop_area, flags, is_drive_through ? 5 << axis : 1 << ddir, is_drive_through, type, axis, &est, rt);
+	ret = CheckFlatLandRoadStop(roadstop_area, flags, is_drive_through ? 0 : 1 << ddir, is_drive_through, type, axis, &est, rts);
 	if (ret.Failed()) return ret;
 	cost.AddCost(ret);
 
@@ -2683,6 +2686,36 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 		default:
 			return false;
 	}
+	
+	if (ti != NULL) {
+		if (*overlay_offset == RTO_X) {
+			switch (ti->tileh) {
+				case SLOPE_NE:
+					*overlay_offset = RTO_SLOPE_NE;
+					break;
+
+				case SLOPE_SW:
+					*overlay_offset = RTO_SLOPE_SW;
+					break;
+				
+				default:
+					*overlay_offset = RTO_X;
+			}
+		} else {
+			switch (ti->tileh) {
+				case SLOPE_NW:
+					*overlay_offset = RTO_SLOPE_NW;
+					break;
+
+				case SLOPE_SE:
+					*overlay_offset = RTO_SLOPE_SE;
+					break;
+				
+				default:
+					*overlay_offset = RTO_Y;
+			}
+		}
+	}
 
 	if (ti != nullptr) {
 		/* Decide snow/desert from tile */
@@ -2700,8 +2733,85 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 		}
 	}
 
-	*ground = snow_desert ? SPR_FLAT_SNOW_DESERT_TILE : SPR_FLAT_GRASS_TILE;
+	*ground = (snow_desert ? SPR_FLAT_SNOW_DESERT_TILE : SPR_FLAT_GRASS_TILE) + (ti != NULL ? ti->tileh : 0);
 	return true;
+}
+
+bool DrawSimpleFoundation(TileInfo *ti, Slope slope, SpriteID image, uint edge_info, Axis a)
+{
+	/* Steep slope foundation must be drawn separately. */
+	assert(slope < SLOPE_ELEVATED);
+	
+	/* Draw simple foundations, built up from 16 possible foundation sprites. */
+
+	/* Each set bit represents one of the 16 composite sprites to be drawn.
+	 * 'Invalid' entries will not drawn but are included for completeness. */
+	static const uint16 composite_foundation_parts[] = {
+		/* Axis X */
+		/* Invalid  (00000000),         SLOPE_W   (0000100000000001), SLOPE_S   (1000000000000100), SLOPE_SW  (00000000) */
+		   0x0000,                      0x0801,                       0x8004,                       0x0000,
+		/* SLOPE_E  (0100000010000000), SLOPE_EW  (11001001),         SLOPE_SE  (11000100),         SLOPE_WSE (11000000) */
+		   0x4080,                      0x00C9,                       0x00C4,                       0x00C0,
+		/* SLOPE_N  (0000010010000000), SLOPE_NW  (10010001),         SLOPE_NS  (11100100),         SLOPE_NWS (10100000) */
+		   0x0480,                      0x0091,                       0x00E4,                       0x00A0,
+		/* SLOPE_NE (00000000),         SLOPE_ENW (00001001),         SLOPE_SEN (01000100) */
+		   0x0000,                      0x0009,                       0x0044,
+		/* Axis Y */
+		/* Invalid  (00000000),         SLOPE_W   (0001000001000000), SLOPE_S   (0010000000100000), SLOPE_SW  (11100000) */
+		   0x0000,                      0x1040,                       0x2020,                       0x00E0,
+		/* SLOPE_E  (0000001000001000), SLOPE_EW  (11001001),         SLOPE_SE  (00000000),         SLOPE_WSE (11000000) */
+		   0x0208,                      0x00C9,                       0x0000,                       0x00C0,
+		/* SLOPE_N  (0000000101000000), SLOPE_NW  (00000000),         SLOPE_NS  (11100100),         SLOPE_NWS (10100000) */
+		   0x0140,                      0x0000,                       0x00E4,                       0x00A0,
+		/* SLOPE_NE (01001010),         SLOPE_ENW (00001001),         SLOPE_SEN (01000100) */
+		   0x004A,                      0x0009,                       0x0044,
+	};
+
+	uint16 parts = composite_foundation_parts[slope + a * 15];
+
+	/* If foundations continue beyond the tile's upper sides then
+	 * mask out pieces. */
+	if (HasBit(edge_info, 0)) CLRBITS(parts, 0xC040);
+	if (HasBit(edge_info, 1)) CLRBITS(parts, 0x3080);
+
+	if (parts == 0) return false;
+	
+	StartSpriteCombine();
+	for (int i = 0; i < 16; i++) {
+		if (HasBit(parts, i)) {
+			AddSortableSpriteToDraw(image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+		}
+	}
+	EndSpriteCombine();
+	
+	return true;
+}
+
+void DrawDefaultFoundation(TileInfo *ti)
+{
+	/* Is it a sloped rail/road station? */
+	if (ti->tileh != SLOPE_FLAT && (IsRailStationTile(ti->tile) || IsDriveThroughStopTile(ti->tile))) {
+		Foundation rf = FOUNDATION_NONE;
+		if (IsDriveThroughStopTile(ti->tile)) {
+			/* Roadstops without foundation on a slope
+			 * and on Slopes with one corner raised */
+			RoadBits road = GetRoadStopDir(ti->tile) == DIAGDIR_NE ? ROAD_X : ROAD_Y;
+			rf = GetRoadFoundation(ti->tileh, road);
+			DrawFoundation(ti, rf);
+		} else {
+			/* sloped rail station */
+			TrackBits track = GetRailStationTrackBits(ti->tile);
+			rf = GetRailFoundation(ti->tileh, track);
+
+			if (IsNonContinuousFoundation(rf)) {
+				/* Draw lower part first */
+				rf = (rf == FOUNDATION_STEEP_BOTH ? FOUNDATION_STEEP_LOWER : FOUNDATION_NONE);
+			}
+			DrawFoundation(ti, rf);
+		}
+	} else {
+		DrawFoundation(ti, FOUNDATION_LEVELED);
+	}
 }
 
 static void DrawTile_Station(TileInfo *ti)
@@ -2799,67 +2909,61 @@ static void DrawTile_Station(TileInfo *ti)
 			 * Check whether the foundation continues beyond the tile's upper sides. */
 			uint edge_info = 0;
 			int z;
+			bool is_steep = IsSteepSlope(ti->tileh);
 			Slope slope = GetFoundationPixelSlope(ti->tile, &z);
+			Axis axis = GetRailStationAxis(ti->tile);
+			Foundation rf = GetRailFoundation(ti->tileh, GetRailStationTrackBits(ti->tile));
 			if (!HasFoundationNW(ti->tile, slope, z)) SetBit(edge_info, 0);
 			if (!HasFoundationNE(ti->tile, slope, z)) SetBit(edge_info, 1);
 			SpriteID image = GetCustomStationFoundationRelocation(statspec, st, ti->tile, tile_layout, edge_info);
-			if (image == 0) goto draw_default_foundation;
-
-			if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
-				/* Station provides extended foundations. */
-
-				static const uint8 foundation_parts[] = {
-					0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
-					0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
-					0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
-					7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
-				};
-
-				AddSortableSpriteToDraw(image + foundation_parts[ti->tileh], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+			if (image == 0) {
+				DrawDefaultFoundation(ti);
 			} else {
-				/* Draw simple foundations, built up from 8 possible foundation sprites. */
+				if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
+					/* Station provides extended foundations. */
+					static const uint8 foundation_parts[] = {
+						/* Axis X */
+						0xFF,  10, 11,  0xFF, // Invalid,  SLOPE_W,   SLOPE_S,   SLOPE_SW
+						12,  1,  2,  3, // SLOPE_E,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
+						13,  4,  5,  6, // SLOPE_N,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
+						0xFF,   8,  9,      // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
+						/* Axis Y */
+						0xFF,  14, 15,  0, // Invalid,  SLOPE_W,   SLOPE_S,   SLOPE_SW
+						16,  1,  0xFF,  3, // SLOPE_E,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
+						17,  0xFF,  5,  6, // SLOPE_N,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
+						7,   8,  9      // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
+					};
 
-				/* Each set bit represents one of the eight composite sprites to be drawn.
-				 * 'Invalid' entries will not drawn but are included for completeness. */
-				static const uint8 composite_foundation_parts[] = {
-					/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
-					   0x00,                0xD1,                 0xE4,                 0xE0,
-					/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
-					   0xCA,                0xC9,                 0xC4,                 0xC0,
-					/* Invalid  (11010010), SLOPE_NW  (10010001), SLOPE_NS  (11100100), SLOPE_NWS (10100000) */
-					   0xD2,                0x91,                 0xE4,                 0xA0,
-					/* SLOPE_NE (01001010), SLOPE_ENW (00001001), SLOPE_SEN (01000100) */
-					   0x4A,                0x09,                 0x44
-				};
+					if (foundation_parts[(ti->tileh & ~SLOPE_STEEP) + axis * 15] != 0xFF) {
+						AddSortableSpriteToDraw(image + foundation_parts[(ti->tileh & ~SLOPE_STEEP) + axis * 15], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+						
+						if (is_steep) {
+							ti->z += ApplyPixelFoundationToSlope(FOUNDATION_STEEP_LOWER, &ti->tileh);
+							AddSortableSpriteToDraw(image + foundation_parts[ti->tileh + axis * 15], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+						}
+						OffsetGroundSprite(31, rf == FOUNDATION_LEVELED ? 1 : 9);
+					}
+					ti->z += ApplyPixelFoundationToSlope(rf, &ti->tileh);
+				} else {
+					/* Station provides simple foundations. */
+					bool has_sprite = DrawSimpleFoundation(ti, ti->tileh & ~SLOPE_STEEP, image, edge_info, axis);
+					bool has_steep_sprite = false;
 
-				uint8 parts = composite_foundation_parts[ti->tileh];
+					if (is_steep) {
+						ti->z += ApplyPixelFoundationToSlope(FOUNDATION_STEEP_LOWER, &ti->tileh);
+						has_steep_sprite = DrawSimpleFoundation(ti, ti->tileh, image, edge_info, axis);
+					}
 
-				/* If foundations continue beyond the tile's upper sides then
-				 * mask out the last two pieces. */
-				if (HasBit(edge_info, 0)) ClrBit(parts, 6);
-				if (HasBit(edge_info, 1)) ClrBit(parts, 7);
-
-				if (parts == 0) {
-					/* We always have to draw at least one sprite to make sure there is a boundingbox and a sprite with the
-					 * correct offset for the childsprites.
-					 * So, draw the (completely empty) sprite of the default foundations. */
-					goto draw_default_foundation;
-				}
-
-				StartSpriteCombine();
-				for (int i = 0; i < 8; i++) {
-					if (HasBit(parts, i)) {
-						AddSortableSpriteToDraw(image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+					if (!has_sprite && !has_steep_sprite) {
+						DrawDefaultFoundation(ti);
+					} else {
+						OffsetGroundSprite(31, rf == FOUNDATION_LEVELED || (is_steep && !has_steep_sprite) ? 1 : 9);
+						ti->z += ApplyPixelFoundationToSlope(rf, &ti->tileh);
 					}
 				}
-				EndSpriteCombine();
 			}
-
-			OffsetGroundSprite(31, 1);
-			ti->z += ApplyPixelFoundationToSlope(FOUNDATION_LEVELED, &ti->tileh);
 		} else {
-draw_default_foundation:
-			DrawFoundation(ti, FOUNDATION_LEVELED);
+			DrawDefaultFoundation(ti);
 		}
 	}
 
@@ -2915,14 +3019,45 @@ draw_default_foundation:
 				DrawGroundSprite(overlay + overlay_offset, PALETTE_CRASH);
 			}
 		} else {
+			Axis axis;
 			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
 			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
+			
+			if (HasStationRail(ti->tile)) axis = GetRailStationAxis(ti->tile);
+			
+			if (!HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) && (ti->tileh != SLOPE_FLAT && ti->tileh != SLOPE_ELEVATED)) {
+				if (HasStationRail(ti->tile)) {
+					image += _track_sloped_sprites[ti->tileh - 1] - (axis == AXIS_X ? 1 : 0);
+				} else if (IsDriveThroughStopTile(ti->tile)) {
+					image = SPR_ROAD_PAVED_STRAIGHT_Y + (SPR_ROAD_SLOPE_START - SPR_ROAD_Y) + _road_sloped_sprites[ti->tileh - 1];
+					gfx += 2 - DiagDirToAxis(GetRoadStopDir(ti->tile)) + _road_sloped_sprites[ti->tileh - 1];
+					t = GetStationTileLayout(GetStationType(ti->tile), gfx);
+				}
+			}
 			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
 
 			/* PBS debugging, draw reserved tracks darker */
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
-				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite(GetRailStationAxis(ti->tile) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
+				TrackBits pbs = AxisToTrackBits(axis);
+				
+				if (pbs & TRACK_BIT_X) {
+					if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
+						DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH);
+					} else {
+						DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
+					}
+				}
+				if (pbs & TRACK_BIT_Y) {
+					if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
+						DrawGroundSprite(rti->base_sprites.single_y, PALETTE_CRASH);
+					} else {
+						DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
+					}
+				}
+				if (pbs & TRACK_BIT_UPPER) AddSortableSpriteToDraw(rti->base_sprites.single_n, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + (ti->tileh & SLOPE_N ? 8 : 0));
+				if (pbs & TRACK_BIT_LOWER) AddSortableSpriteToDraw(rti->base_sprites.single_s, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + (ti->tileh & SLOPE_S ? 8 : 0));
+				if (pbs & TRACK_BIT_LEFT)  AddSortableSpriteToDraw(rti->base_sprites.single_w, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + (ti->tileh & SLOPE_W ? 8 : 0));
+				if (pbs & TRACK_BIT_RIGHT) AddSortableSpriteToDraw(rti->base_sprites.single_e, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + (ti->tileh & SLOPE_E ? 8 : 0));
 			}
 		}
 	}
@@ -2937,7 +3072,13 @@ draw_default_foundation:
 
 		if (IsDriveThroughStopTile(ti->tile)) {
 			Axis axis = GetRoadStopDir(ti->tile) == DIAGDIR_NE ? AXIS_X : AXIS_Y;
-			uint sprite_offset = axis == AXIS_X ? 1 : 0;
+			uint sprite_offset;
+
+			if (ti->tileh != SLOPE_FLAT && ti->tileh != SLOPE_ELEVATED) {
+				sprite_offset = _road_sloped_sprites[ti->tileh - 1] + SPR_TRAMWAY_SLOPED_OFFSET;
+			} else {
+				sprite_offset = axis == AXIS_X ? 1 : 0;
+			}
 
 			DrawRoadOverlays(ti, PAL_NONE, road_rti, tram_rti, sprite_offset, sprite_offset);
 		} else {
@@ -3016,12 +3157,31 @@ void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, Ro
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)
 {
+	Axis axis;
+	int z;
+	Slope tileh = GetTilePixelSlope(tile, &z);
+
+	/* this code makes vehicles and trains follow the slope on sloped stations */
+	if (IsRailStationTile(tile) || (IsRoadStopTile(tile) && !IsStandardRoadStopTile(tile))) {
+		axis = IsRailStationTile(tile) ? GetRailStationAxis(tile) : DiagDirToAxis(GetRoadStopDir(tile));
+		z += ApplyFoundationToSlope(GetRailFoundation(tileh, AxisToTrackBits(axis)), &tileh);
+		
+		if (tileh != SLOPE_FLAT && tileh != SLOPE_ELEVATED) {
+			return z + GetPartialPixelZ(x & 0xF, y & 0xF, tileh);
+		}
+	}
+
 	return GetTileMaxPixelZ(tile);
 }
 
 static Foundation GetFoundation_Station(TileIndex tile, Slope tileh)
 {
-	return FlatteningFoundation(tileh);
+	if (IsRailStationTile(tile) || (IsRoadStopTile(tile) && !IsStandardRoadStopTile(tile))) {
+		Axis axis = IsRailStationTile(tile) ? GetRailStationAxis(tile) : DiagDirToAxis(GetRoadStopDir(tile));
+		return GetRailFoundation(tileh, AxisToTrackBits(axis));
+	} else {
+		return FlatteningFoundation(tileh);
+	}
 }
 
 static void GetTileDesc_Station(TileIndex tile, TileDesc *td)

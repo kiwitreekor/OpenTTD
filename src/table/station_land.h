@@ -765,6 +765,62 @@ static const DrawTileSeqStruct _station_display_datas_0171[] = {
 	TILE_SEQ_END()
 };
 
+/* drive-through truck stop sloped, NE */
+static const DrawTileSeqStruct _station_display_datas_truck_slope_ne[] = {
+	TILE_SEQ_LINE( 0,  0,  0,  16,  3, 16, SPR_TRUCK_STOP_DT_W_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0, 13,  0,  16,  3, 16, SPR_TRUCK_STOP_DT_E_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through truck stop sloped, SE */
+static const DrawTileSeqStruct _station_display_datas_truck_slope_se[] = {
+	TILE_SEQ_LINE(13,  0,  0,  3, 16, 16, SPR_TRUCK_STOP_DT_W_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0,  0,  0,  3, 16, 16, SPR_TRUCK_STOP_DT_E_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through truck stop sloped, SW */
+static const DrawTileSeqStruct _station_display_datas_truck_slope_sw[] = {
+	TILE_SEQ_LINE( 0,  0,  0,  16,  3, 16, SPR_TRUCK_STOP_DT_W_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0, 13,  0,  16,  3, 16, SPR_TRUCK_STOP_DT_E_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through truck stop sloped, NW */
+static const DrawTileSeqStruct _station_display_datas_truck_slope_nw[] = {
+	TILE_SEQ_LINE(13,  0,  0,  3, 16, 16, SPR_TRUCK_STOP_DT_W_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0,  0,  0,  3, 16, 16, SPR_TRUCK_STOP_DT_E_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through bus stop sloped, NE */
+static const DrawTileSeqStruct _station_display_datas_bus_slope_ne[] = {
+	TILE_SEQ_LINE( 0,  0,  0,  16,  3, 16, SPR_BUS_STOP_DT_W_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0, 13,  0,  16,  3, 16, SPR_BUS_STOP_DT_E_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through bus stop sloped, SE */
+static const DrawTileSeqStruct _station_display_datas_bus_slope_se[] = {
+	TILE_SEQ_LINE(13,  0,  0,  3, 16, 16, SPR_BUS_STOP_DT_W_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0,  0,  0,  3, 16, 16, SPR_BUS_STOP_DT_E_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through bus stop sloped, SW */
+static const DrawTileSeqStruct _station_display_datas_bus_slope_sw[] = {
+	TILE_SEQ_LINE( 0,  0,  0,  16,  3, 16, SPR_BUS_STOP_DT_W_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0, 13,  0,  16,  3, 16, SPR_BUS_STOP_DT_E_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
+/* drive-through bus stop sloped, NW */
+static const DrawTileSeqStruct _station_display_datas_bus_slope_nw[] = {
+	TILE_SEQ_LINE(13,  0,  0,  3, 16, 16, SPR_BUS_STOP_DT_W_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_LINE( 0,  0,  0,  3, 16, 16, SPR_BUS_STOP_DT_E_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
+	TILE_SEQ_END()
+};
+
 static const DrawTileSeqStruct _station_display_datas_waypoint_X[] = {
 	TILE_SEQ_LINE( 0,  0,  0, 16,  5, 23, SPR_WAYPOINT_X_1 | (1U << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_LINE( 0, 11,  0, 16,  5, 23, SPR_WAYPOINT_X_2 | (1U << PALETTE_MODIFIER_COLOUR))
@@ -946,6 +1002,10 @@ static const DrawTileSprites _station_display_datas_truck[] = {
 	TILE_SPRITE_LINE(SPR_TRUCK_STOP_NW_GROUND | (1U << PALETTE_MODIFIER_COLOUR), _station_display_datas_70)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_0168)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_0169)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_truck_slope_ne)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_truck_slope_se)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_truck_slope_sw)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_truck_slope_nw)
 };
 
 static const DrawTileSprites _station_display_datas_bus[] = {
@@ -955,6 +1015,10 @@ static const DrawTileSprites _station_display_datas_bus[] = {
 	TILE_SPRITE_LINE(SPR_BUS_STOP_NW_GROUND   | (1U << PALETTE_MODIFIER_COLOUR), _station_display_datas_74)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_0170)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_0171)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_bus_slope_ne)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_bus_slope_se)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_bus_slope_sw)
+	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_bus_slope_nw)
 };
 
 static const DrawTileSprites _station_display_datas_oilrig[] = {

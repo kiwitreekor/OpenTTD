@@ -6,13 +6,29 @@
 // OpenTTD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
 //
-   -1 * 0	 0C "Road stop graphics"
-   -1 * 3	 05 11 08
-   -1 sprites/roadstops.png 8bpp  34    8  13  23   5 -11 normal
-   -1 sprites/roadstops.png 8bpp  66    8  13  15   5  -2 normal
-   -1 sprites/roadstops.png 8bpp  98    8  21  19 -20  -7 normal
-   -1 sprites/roadstops.png 8bpp 130    8  22  17 -25  -4 normal
-   -1 sprites/roadstops.png 8bpp 162    8  32  25  -5  -9 normal
-   -1 sprites/roadstops.png 8bpp 210    8  28  26  -3 -12 normal
-   -1 sprites/roadstops.png 8bpp 258    8  29  25 -24 -12 normal
-   -1 sprites/roadstops.png 8bpp 306    8  32  25 -25  -9 normal
+   -1 * 19	 0C "Road stop graphics"
+   -1 * 3	 05 11 18
+   -1 sprites/roadstops.png  8bpp   82    8   13   23    5  -11 normal chunked
+   -1 sprites/roadstops.png  8bpp  114    8   13   15    5   -2 normal chunked
+   -1 sprites/roadstops.png  8bpp  146    8   21   19  -20   -7 normal chunked
+   -1 sprites/roadstops.png  8bpp  178    8   22   17  -25   -4 normal chunked
+   -1 sprites/roadstops.png  8bpp  210    8   32   25   -5   -9 normal chunked
+   -1 sprites/roadstops.png  8bpp  258    8   28   26   -3  -12 normal chunked
+   -1 sprites/roadstops.png  8bpp  306    8   29   25  -24  -12 normal chunked
+   -1 sprites/roadstops.png  8bpp  354    8   32   25  -25   -9 normal chunked
+   -1 sprites/roadstops.png  8bpp  434    8   21   26  -20  -15 normal chunked
+   -1 sprites/roadstops.png  8bpp  402    8   22   22  -25   -8 normal chunked
+   -1 sprites/roadstops.png  8bpp  466    8   18   19    5  -11 normal chunked
+   -1 sprites/roadstops.png  8bpp  498    8   18   15    5   -7 normal chunked
+   -1 sprites/roadstops.png  8bpp  562    8   21   17  -22  -10 normal chunked
+   -1 sprites/roadstops.png  8bpp  530    8   22   17  -25   -9 normal chunked
+   -1 sprites/roadstops.png  8bpp  594    8   16   26    7  -14 normal chunked
+   -1 sprites/roadstops.png  8bpp  626    8   17   20    7   -7 normal chunked
+   -1 sprites/roadstops.png  8bpp  706    8   31   29  -24  -16 normal chunked
+   -1 sprites/roadstops.png  8bpp  658    8   35   30  -28  -14 normal chunked
+   -1 sprites/roadstops.png  8bpp  754    8   33   18   -5   -9 normal chunked
+   -1 sprites/roadstops.png  8bpp    2   56   30   20   -3  -11 normal chunked
+   -1 sprites/roadstops.png  8bpp   98   56   31   20  -26  -11 normal chunked
+   -1 sprites/roadstops.png  8bpp   50   56   35   19  -28   -9 normal chunked
+   -1 sprites/roadstops.png  8bpp  146   56   33   28   -5  -14 normal chunked
+   -1 sprites/roadstops.png  8bpp  194   56   31   31   -3  -17 normal chunked

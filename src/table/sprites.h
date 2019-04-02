@@ -251,16 +251,32 @@ static const SpriteID SPR_AIRPORT_PREVIEW_INTERCONTINENTAL = SPR_AIRPORT_PREVIEW
 static const SpriteID SPR_AIRPORT_PREVIEW_HELISTATION      = SPR_AIRPORT_PREVIEW_BASE + 8;
 static const SpriteID SPR_AIRPORT_PREVIEW_COUNT            = 9;
 
-static const SpriteID SPR_ROADSTOP_BASE     = SPR_AIRPORT_PREVIEW_BASE + SPR_AIRPORT_PREVIEW_COUNT; // The sprites used for drive-through road stops
-static const SpriteID SPR_BUS_STOP_DT_Y_W   = SPR_ROADSTOP_BASE;
-static const SpriteID SPR_BUS_STOP_DT_Y_E   = SPR_ROADSTOP_BASE + 1;
-static const SpriteID SPR_BUS_STOP_DT_X_W   = SPR_ROADSTOP_BASE + 2;
-static const SpriteID SPR_BUS_STOP_DT_X_E   = SPR_ROADSTOP_BASE + 3;
-static const SpriteID SPR_TRUCK_STOP_DT_Y_W = SPR_ROADSTOP_BASE + 4;
-static const SpriteID SPR_TRUCK_STOP_DT_Y_E = SPR_ROADSTOP_BASE + 5;
-static const SpriteID SPR_TRUCK_STOP_DT_X_W = SPR_ROADSTOP_BASE + 6;
-static const SpriteID SPR_TRUCK_STOP_DT_X_E = SPR_ROADSTOP_BASE + 7;
-static const uint16 ROADSTOP_SPRITE_COUNT = 8;
+static const SpriteID SPR_ROADSTOP_BASE            = SPR_AIRPORT_PREVIEW_BASE + SPR_AIRPORT_PREVIEW_COUNT; // The sprites used for drive-through road stops
+static const SpriteID SPR_BUS_STOP_DT_Y_W          = SPR_ROADSTOP_BASE;
+static const SpriteID SPR_BUS_STOP_DT_Y_E          = SPR_ROADSTOP_BASE + 1;
+static const SpriteID SPR_BUS_STOP_DT_X_W          = SPR_ROADSTOP_BASE + 2;
+static const SpriteID SPR_BUS_STOP_DT_X_E          = SPR_ROADSTOP_BASE + 3;
+static const SpriteID SPR_TRUCK_STOP_DT_Y_W        = SPR_ROADSTOP_BASE + 4;
+static const SpriteID SPR_TRUCK_STOP_DT_Y_E        = SPR_ROADSTOP_BASE + 5;
+static const SpriteID SPR_TRUCK_STOP_DT_X_W        = SPR_ROADSTOP_BASE + 6;
+static const SpriteID SPR_TRUCK_STOP_DT_X_E        = SPR_ROADSTOP_BASE + 7;
+static const SpriteID SPR_BUS_STOP_DT_W_SLOPE_NE   = SPR_ROADSTOP_BASE + 8;
+static const SpriteID SPR_BUS_STOP_DT_E_SLOPE_NE   = SPR_ROADSTOP_BASE + 9;
+static const SpriteID SPR_BUS_STOP_DT_W_SLOPE_SE   = SPR_ROADSTOP_BASE + 10;
+static const SpriteID SPR_BUS_STOP_DT_E_SLOPE_SE   = SPR_ROADSTOP_BASE + 11;
+static const SpriteID SPR_BUS_STOP_DT_W_SLOPE_SW   = SPR_ROADSTOP_BASE + 12;
+static const SpriteID SPR_BUS_STOP_DT_E_SLOPE_SW   = SPR_ROADSTOP_BASE + 13;
+static const SpriteID SPR_BUS_STOP_DT_W_SLOPE_NW   = SPR_ROADSTOP_BASE + 14;
+static const SpriteID SPR_BUS_STOP_DT_E_SLOPE_NW   = SPR_ROADSTOP_BASE + 15;
+static const SpriteID SPR_TRUCK_STOP_DT_W_SLOPE_NE = SPR_ROADSTOP_BASE + 16;
+static const SpriteID SPR_TRUCK_STOP_DT_E_SLOPE_NE = SPR_ROADSTOP_BASE + 17;
+static const SpriteID SPR_TRUCK_STOP_DT_W_SLOPE_SE = SPR_ROADSTOP_BASE + 18;
+static const SpriteID SPR_TRUCK_STOP_DT_E_SLOPE_SE = SPR_ROADSTOP_BASE + 19;
+static const SpriteID SPR_TRUCK_STOP_DT_W_SLOPE_SW = SPR_ROADSTOP_BASE + 20;
+static const SpriteID SPR_TRUCK_STOP_DT_E_SLOPE_SW = SPR_ROADSTOP_BASE + 21;
+static const SpriteID SPR_TRUCK_STOP_DT_W_SLOPE_NW = SPR_ROADSTOP_BASE + 22;
+static const SpriteID SPR_TRUCK_STOP_DT_E_SLOPE_NW = SPR_ROADSTOP_BASE + 23;
+static const uint16 ROADSTOP_SPRITE_COUNT = 24;
 
 /** Tramway sprites */
 static const SpriteID SPR_TRAMWAY_BASE                 = SPR_ROADSTOP_BASE + ROADSTOP_SPRITE_COUNT;
@@ -425,7 +441,7 @@ static const SpriteID SPR_WAYPOINT_X_1            = SPR_OPENTTD_BASE + 78;
 static const SpriteID SPR_WAYPOINT_X_2            = SPR_OPENTTD_BASE + 79;
 static const SpriteID SPR_WAYPOINT_Y_1            = SPR_OPENTTD_BASE + 80;
 static const SpriteID SPR_WAYPOINT_Y_2            = SPR_OPENTTD_BASE + 81;
-/* see _track_sloped_sprites in rail_cmd.cpp for slope offsets */
+/* see _track_sloped_sprites in rail.h for slope offsets */
 
 /* Track fences */
 static const SpriteID SPR_TRACK_FENCE_FLAT_X    = 1301;
@@ -564,7 +580,7 @@ static const SpriteID SPR_ROAD_X                  = 1333;
 static const SpriteID SPR_ROAD_SLOPE_START        = 1343;
 static const SpriteID SPR_ROAD_Y_SNOW             = 1351;
 static const SpriteID SPR_ROAD_X_SNOW             = 1352;
-/* see _road_sloped_sprites_offset in road_cmd.cpp for offsets for sloped road tiles */
+/* see _road_sloped_sprites_offset in road_cmd.h for offsets for sloped road tiles */
 static const SpriteID SPR_ROAD_DEPOT              = 1408;
 
 static const SpriteID SPR_EXCAVATION_X = 1414;

@@ -15,6 +15,15 @@
 #include "direction_type.h"
 #include "road_type.h"
 
+const byte _road_sloped_sprites[14] = {
+	0,  0,  2,  0,
+	0,  1,  0,  0,
+	3,  0,  0,  0,
+	0,  0
+};
+
+Foundation GetRoadFoundation(Slope tileh, RoadBits bits);
+
 void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt);
 void UpdateNearestTownForRoadTiles(bool invalidate);
 

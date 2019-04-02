@@ -94,6 +94,17 @@ enum RailTrackBridgeOffset {
 	RTBO_SLOPE, ///< Sloped rail pieces, in order NE, SE, SW, NW
 };
 
+
+/**
+ * slope offsets
+ */
+const byte _track_sloped_sprites[14] = {
+	14, 15, 22, 13,
+	 0, 21, 17, 12,
+	23,  0, 18, 20,
+	19, 16
+};
+
 /**
  * Offsets from base sprite for fence sprites. These are in the order of
  *  the sprites in the original data files.

@@ -39,6 +39,7 @@
 #include "genworld.h"
 #include "company_gui.h"
 #include "road_func.h"
+#include "road_cmd.h"
 
 #include "table/strings.h"
 #include "table/roadtypes.h"
@@ -255,8 +256,6 @@ static const RoadBits _invalid_tileh_slopes_road[2][15] = {
 		ROAD_ALL   // SLOPE_NW
 	}
 };
-
-static Foundation GetRoadFoundation(Slope tileh, RoadBits bits);
 
 /**
  * Is it allowed to remove the given road bits from the given tile?
@@ -1301,7 +1300,7 @@ struct DrawRoadTileStruct {
  * @param bits The RoadBits part
  * @return The resulting Foundation
  */
-static Foundation GetRoadFoundation(Slope tileh, RoadBits bits)
+Foundation GetRoadFoundation(Slope tileh, RoadBits bits)
 {
 	/* Flat land and land without a road doesn't require a foundation */
 	if (tileh == SLOPE_FLAT || bits == ROAD_NONE) return FOUNDATION_NONE;
@@ -1322,13 +1321,6 @@ static Foundation GetRoadFoundation(Slope tileh, RoadBits bits)
 	/* Roads on steep Slopes or on Slopes with one corner raised */
 	return (bits == ROAD_X ? FOUNDATION_INCLINED_X : FOUNDATION_INCLINED_Y);
 }
-
-const byte _road_sloped_sprites[14] = {
-	0,  0,  2,  0,
-	0,  1,  0,  0,
-	3,  0,  0,  0,
-	0,  0
-};
 
 /**
  * Get the sprite offset within a spritegroup.

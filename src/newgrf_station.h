@@ -96,6 +96,7 @@ enum StationSpecFlags {
 	SSF_CB141_RANDOM_BITS,    ///< Callback 141 needs random bits.
 	SSF_CUSTOM_FOUNDATIONS,   ///< Draw custom foundations.
 	SSF_EXTENDED_FOUNDATIONS, ///< Extended foundation block instead of simple.
+	SSF_ALLOW_SLOPES,         ///< Allow construction on slopes.
 };
 
 /** Randomisation triggers for stations */
