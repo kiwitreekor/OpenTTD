@@ -89,7 +89,7 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 
 	void PowerChanged();
 	void CargoChanged();
-	int GetAcceleration() const;
+	int GetAcceleration(AccelerationModel accel_model) const;
 	bool IsChainInDepot() const override;
 
 	/**
